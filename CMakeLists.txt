@@ -1,4 +1,4 @@
-cmake_minimum_required( VERSION 2.6 )
+cmake_minimum_required( VERSION 2.8.12 )
 project( ES3_Book )
 
 include_directories( External/Include )
@@ -8,8 +8,7 @@ find_library( OPENGLES3_LIBRARY GLESv2 "OpenGL ES v3.0 library")
 find_library( EGL_LIBRARY EGL "EGL 1.4 library" )
 
 SUBDIRS( Common
-         ch_02
-         Chapter_2/Hello_Triangle
+         ch_02/HelloTriangle
          Chapter_6/Example_6_3
          Chapter_6/Example_6_6
          Chapter_6/MapBuffers
