@@ -1,0 +1,3 @@
+[submodule "ClangFormatStyle"]
+	path = ClangFormatStyle
+	url = https://hub.fastgit.xyz/supdrewin/ClangFormatStyle.git
