@@ -1,11 +1,13 @@
 #include "esUtil.h"
 
 // clang-format off
+
 struct UserData {
 	GLuint program;
 };
 
 // clang-format on
+
 GLuint load_shader ( GLenum type, char const *shader_src )
 {
 	auto shader = glCreateShader ( type );
@@ -43,7 +45,6 @@ bool init ( ESContext *es_context )
 {
 	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
 
-	// clang-format off
 	auto v_shader_str = R"(
 		#version 300 es
 
@@ -55,7 +56,7 @@ bool init ( ESContext *es_context )
 		}
 	)";
 
-	auto f_shader_str= R"(
+	auto f_shader_str = R"(
 		#version 300 es
 
 		precision mediump float;
@@ -67,7 +68,6 @@ bool init ( ESContext *es_context )
 		}
 	)";
 
-	// clang-format on
 	auto vert_shader = load_shader ( GL_VERTEX_SHADER, v_shader_str );
 	auto frag_shader = load_shader ( GL_FRAGMENT_SHADER, f_shader_str );
 	auto program     = glCreateProgram ( );
@@ -118,6 +118,7 @@ void draw ( ESContext *es_context )
 	glUseProgram ( user_data->program );
 
 	// clang-format off
+
 	GLfloat vertices[] = {
 		 0.0,  0.5, 0.0,
 		-0.5, -0.5, 0.0,
@@ -125,6 +126,7 @@ void draw ( ESContext *es_context )
 	};
 
 	// clang-format on
+
 	glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 0, vertices );
 	glEnableVertexAttribArray ( 0 );
 	glDrawArrays ( GL_TRIANGLES, 0, 3 );
