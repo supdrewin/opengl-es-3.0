@@ -9,6 +9,7 @@ find_library( EGL_LIBRARY EGL "EGL 1.4 library" )
 
 SUBDIRS( Common
          ch_02/HelloTriangle
+         ch_06/example3
          Chapter_6/Example_6_3
          Chapter_6/Example_6_6
          Chapter_6/MapBuffers

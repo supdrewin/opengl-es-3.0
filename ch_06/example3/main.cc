@@ -46,27 +46,32 @@ bool init ( ESContext *es_context )
 	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
 
 	auto v_shader_str = R"(
-		#version 300 es
+                #version 300 es
 
-		layout ( location = 0 ) in vec4 v_pos;
+                layout ( location = 0 ) in vec4 a_color;
+                layout ( location = 1 ) in vec4 a_position;
 
-		void main ( )
-		{
-			gl_Position = v_pos;
-		}
+                out vec4 v_color;
+
+                void main ( )
+                {
+                        v_color     = a_color;
+                        gl_Position = a_position;
+                }
 	)";
 
 	auto f_shader_str = R"(
-		#version 300 es
+                #version 300 es
 
-		precision mediump float;
+                precision mediump float;
 
-		out vec4 frag_color;
+                in  vec4 v_color;
+                out vec4 o_fragcolor;
 
-		void main ( )
-		{
-			frag_color = vec4 ( 1.0, 0.0, 0.0, 1.0 );
-		}
+                void main ( )
+                {
+                        o_fragcolor = v_color;
+                }
 	)";
 
 	auto vert_shader = load_shader ( GL_VERTEX_SHADER, v_shader_str );
@@ -118,14 +123,18 @@ void draw ( ESContext *es_context )
 	glClear ( GL_COLOR_BUFFER_BIT );
 	glUseProgram ( user_data->program );
 
+	GLfloat color[] = { 1, 0, 0, 1 };
+
+	glVertexAttrib4fv ( 0, color );
+
 	GLfloat vertices[] = {
 		0.0,  0.5,  0.0,  // v0
 		-0.5, -0.5, 0.0,  // v1
 		0.5,  -0.5, 0.0,  // v2
 	};
 
-	glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 0, vertices );
-	glEnableVertexAttribArray ( 0 );
+	glVertexAttribPointer ( 1, 3, GL_FLOAT, GL_FALSE, 0, vertices );
+	glEnableVertexAttribArray ( 1 );
 
 	glDrawArrays ( GL_TRIANGLES, 0, 3 );
 	glDisableVertexAttribArray ( 1 );
