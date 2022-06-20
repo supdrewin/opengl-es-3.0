@@ -54,15 +54,15 @@ bool init ( ESContext *es_context )
 	auto v_shader_str = R"(
                 #version 300 es
 
-                layout ( location = 0 ) in vec4 a_color;
-                layout ( location = 1 ) in vec4 a_position;
+                layout ( location = 0 ) in vec4 a_position;
+                layout ( location = 1 ) in vec4 a_color;
 
                 out vec4 v_color;
 
                 void main ( )
                 {
-                        v_color     = a_color;
                         gl_Position = a_position;
+                        v_color     = a_color;
                 }
 	)";
 
@@ -72,11 +72,11 @@ bool init ( ESContext *es_context )
                 precision mediump float;
 
                 in  vec4 v_color;
-                out vec4 o_fragcolor;
+                out vec4 o_color;
 
                 void main ( )
                 {
-                        o_fragcolor = v_color;
+                        o_color = v_color;
                 }
 	)";
 
@@ -171,10 +171,10 @@ void draw_primitive_with_VBOs (
 
 	glVertexAttribPointer (
 	    0,
-	    4,
+	    3,
 	    GL_FLOAT,
 	    GL_FALSE,
-	    sizeof ( GLfloat ) * 4,
+	    sizeof ( GLfloat ) * 3,
 	    0
 	);
 
@@ -183,10 +183,10 @@ void draw_primitive_with_VBOs (
 
 	glVertexAttribPointer (
 	    1,
-	    3,
+	    4,
 	    GL_FLOAT,
 	    GL_FALSE,
-	    sizeof ( GLfloat ) * 3,
+	    sizeof ( GLfloat ) * 4,
 	    0
 	);
 
@@ -208,21 +208,21 @@ void draw ( ESContext *es_context )
 	glClear ( GL_COLOR_BUFFER_BIT );
 	glUseProgram ( user_data->program );
 
-	std::vector<GLfloat> colors {
-		1, 0, 0, 1,  // c0
-		0, 1, 0, 1,  // c1
-		0, 0, 1, 1,  // c2
-	};
-
 	std::vector<GLfloat> vertices {
 		0.0,  0.5,  0.0,  // v0
 		-0.5, -0.5, 0.0,  // v1
 		0.5,  -0.5, 0.0,  // v2
 	};
 
+	std::vector<GLfloat> colors {
+		1, 0, 0, 1,  // c0
+		0, 1, 0, 1,  // c1
+		0, 0, 1, 1,  // c2
+	};
+
 	draw_primitive_with_VBOs (
 	    es_context,
-	    { colors, vertices },
+	    { vertices, colors },
 	    { 0, 1, 2 }
 	);
 }
