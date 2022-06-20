@@ -6,10 +6,10 @@
 
 struct UserData {
 		GLuint              program;
-		std::vector<GLuint> vboids;
+		std::vector<GLuint> vbo_ids;
 
 		UserData ( size_t n )
-		    : vboids ( n )
+		    : vbo_ids ( n )
 		{
 		}
 };
@@ -47,47 +47,47 @@ GLuint load_shader ( GLenum type, char const *shader_src )
 	return 0;
 }
 
-bool init ( ESContext *es_context )
+bool init ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
-	auto v_shader_str = R"(
+	auto vshader_src = R"(
                 #version 300 es
 
-                layout ( location = 0 ) in vec4 a_position;
-                layout ( location = 1 ) in vec4 a_color;
+                layout ( location = 0 ) in vec4 pos;
+                layout ( location = 1 ) in vec4 color;
 
                 out vec4 v_color;
 
                 void main ( )
                 {
-                        gl_Position = a_position;
-                        v_color     = a_color;
+                        gl_Position = pos;
+                        v_color     = color;
                 }
 	)";
 
-	auto f_shader_str = R"(
+	auto fshader_src = R"(
                 #version 300 es
 
                 precision mediump float;
 
                 in  vec4 v_color;
-                out vec4 o_color;
+                out vec4 color;
 
                 void main ( )
                 {
-                        o_color = v_color;
+                        color = v_color;
                 }
 	)";
 
-	auto vert_shader = load_shader ( GL_VERTEX_SHADER, v_shader_str );
-	auto frag_shader = load_shader ( GL_FRAGMENT_SHADER, f_shader_str );
-	auto program     = glCreateProgram ( );
+	auto vshader = load_shader ( GL_VERTEX_SHADER, vshader_src );
+	auto fshader = load_shader ( GL_FRAGMENT_SHADER, fshader_src );
+	auto program = glCreateProgram ( );
 
 	if ( !program ) return false;
 
-	glAttachShader ( program, vert_shader );
-	glAttachShader ( program, frag_shader );
+	glAttachShader ( program, vshader );
+	glAttachShader ( program, fshader );
 
 	glLinkProgram ( program );
 
@@ -122,31 +122,31 @@ bool init ( ESContext *es_context )
 }
 
 void draw_primitive_with_VBOs (
-    ESContext			       *es_context,
-    std::vector<std::vector<GLfloat>> const &vtxbuf,
+    ESContext			       *context,
+    std::vector<std::vector<GLfloat>> const &vtx_buf,
     std::vector<GLushort> const             &indices
 )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
-	if ( user_data->vboids.cend ( )
+	if ( user_data->vbo_ids.cend ( )
 	     != std::find (
-		 user_data->vboids.cbegin ( ),
-		 user_data->vboids.cend ( ),
+		 user_data->vbo_ids.cbegin ( ),
+		 user_data->vbo_ids.cend ( ),
 		 0
 	     ) )
 	{
 		glGenBuffers (
-		    user_data->vboids.size ( ),
-		    user_data->vboids.data ( )
+		    user_data->vbo_ids.size ( ),
+		    user_data->vbo_ids.data ( )
 		);
 
 		size_t i = 0;
 
-		for ( auto const &buf : vtxbuf ) {
+		for ( auto const &buf : vtx_buf ) {
 			glBindBuffer (
 			    GL_ARRAY_BUFFER,
-			    user_data->vboids[i++]
+			    user_data->vbo_ids[i++]
 			);
 			glBufferData (
 			    GL_ARRAY_BUFFER,
@@ -156,7 +156,7 @@ void draw_primitive_with_VBOs (
 			);
 		}
 
-		glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, user_data->vboids[i] );
+		glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, user_data->vbo_ids[i] );
 
 		glBufferData (
 		    GL_ELEMENT_ARRAY_BUFFER,
@@ -166,7 +166,7 @@ void draw_primitive_with_VBOs (
 		);
 	}
 
-	glBindBuffer ( GL_ARRAY_BUFFER, user_data->vboids[0] );
+	glBindBuffer ( GL_ARRAY_BUFFER, user_data->vbo_ids[0] );
 	glEnableVertexAttribArray ( 0 );
 
 	glVertexAttribPointer (
@@ -178,7 +178,7 @@ void draw_primitive_with_VBOs (
 	    0
 	);
 
-	glBindBuffer ( GL_ARRAY_BUFFER, user_data->vboids[1] );
+	glBindBuffer ( GL_ARRAY_BUFFER, user_data->vbo_ids[1] );
 	glEnableVertexAttribArray ( 1 );
 
 	glVertexAttribPointer (
@@ -190,7 +190,7 @@ void draw_primitive_with_VBOs (
 	    0
 	);
 
-	glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, user_data->vboids[2] );
+	glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, user_data->vbo_ids[2] );
 	glDrawElements ( GL_TRIANGLES, indices.size ( ), GL_UNSIGNED_SHORT, 0 );
 
 	glDisableVertexAttribArray ( 0 );
@@ -200,11 +200,11 @@ void draw_primitive_with_VBOs (
 	glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, 0 );
 }
 
-void draw ( ESContext *es_context )
+void draw ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
-	glViewport ( 0, 0, es_context->width, es_context->height );
+	glViewport ( 0, 0, context->width, context->height );
 	glClear ( GL_COLOR_BUFFER_BIT );
 	glUseProgram ( user_data->program );
 
@@ -220,36 +220,32 @@ void draw ( ESContext *es_context )
 		0, 0, 1, 1,  // c2
 	};
 
-	draw_primitive_with_VBOs (
-	    es_context,
-	    { vertices, colors },
-	    { 0, 1, 2 }
-	);
+	draw_primitive_with_VBOs ( context, { vertices, colors }, { 0, 1, 2 } );
 }
 
-void shutdown ( ESContext *es_context )
+void shutdown ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
 	glDeleteProgram ( user_data->program );
 }
 
-extern "C" int esMain ( ESContext *es_context )
+extern "C" int esMain ( ESContext *context )
 {
-	es_context->userData = new UserData ( 3 );
+	context->userData = new UserData ( 3 );
 
 	esCreateWindow (
-	    es_context,
-	    "Hello Triangle",
+	    context,
+	    "Colorful Triangle",
 	    800,
 	    600,
 	    ES_WINDOW_RGB
 	);
 
-	if ( !init ( es_context ) ) return GL_FALSE;
+	if ( !init ( context ) ) return GL_FALSE;
 
-	esRegisterDrawFunc ( es_context, draw );
-	esRegisterShutdownFunc ( es_context, shutdown );
+	esRegisterDrawFunc ( context, draw );
+	esRegisterShutdownFunc ( context, shutdown );
 
 	return GL_TRUE;
 }

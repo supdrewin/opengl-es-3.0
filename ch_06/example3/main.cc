@@ -1,12 +1,8 @@
 #include "esUtil.h"
 
-// clang-format off
-
 struct UserData {
-	GLuint program;
+		GLuint program;
 };
-
-// clang-format on
 
 GLuint load_shader ( GLenum type, char const *shader_src )
 {
@@ -41,47 +37,47 @@ GLuint load_shader ( GLenum type, char const *shader_src )
 	return 0;
 }
 
-bool init ( ESContext *es_context )
+bool init ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
-	auto v_shader_str = R"(
+	auto vshader_src = R"(
                 #version 300 es
 
-                layout ( location = 0 ) in vec4 a_color;
-                layout ( location = 1 ) in vec4 a_position;
+                layout ( location = 0 ) in vec4 color;
+                layout ( location = 1 ) in vec4 pos;
 
                 out vec4 v_color;
 
                 void main ( )
                 {
-                        v_color     = a_color;
-                        gl_Position = a_position;
+                        v_color     = color;
+                        gl_Position = pos;
                 }
 	)";
 
-	auto f_shader_str = R"(
+	auto fshader_src = R"(
                 #version 300 es
 
                 precision mediump float;
 
                 in  vec4 v_color;
-                out vec4 o_fragcolor;
+                out vec4 color;
 
                 void main ( )
                 {
-                        o_fragcolor = v_color;
+                        color = v_color;
                 }
 	)";
 
-	auto vert_shader = load_shader ( GL_VERTEX_SHADER, v_shader_str );
-	auto frag_shader = load_shader ( GL_FRAGMENT_SHADER, f_shader_str );
-	auto program     = glCreateProgram ( );
+	auto vshader = load_shader ( GL_VERTEX_SHADER, vshader_src );
+	auto fshader = load_shader ( GL_FRAGMENT_SHADER, fshader_src );
+	auto program = glCreateProgram ( );
 
 	if ( !program ) return false;
 
-	glAttachShader ( program, vert_shader );
-	glAttachShader ( program, frag_shader );
+	glAttachShader ( program, vshader );
+	glAttachShader ( program, fshader );
 
 	glLinkProgram ( program );
 
@@ -115,11 +111,11 @@ bool init ( ESContext *es_context )
 	return false;
 }
 
-void draw ( ESContext *es_context )
+void draw ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
-	glViewport ( 0, 0, es_context->width, es_context->height );
+	glViewport ( 0, 0, context->width, context->height );
 	glClear ( GL_COLOR_BUFFER_BIT );
 	glUseProgram ( user_data->program );
 
@@ -140,29 +136,23 @@ void draw ( ESContext *es_context )
 	glDisableVertexAttribArray ( 1 );
 }
 
-void shutdown ( ESContext *es_context )
+void shutdown ( ESContext *context )
 {
-	auto user_data = reinterpret_cast<UserData *> ( es_context->userData );
+	auto user_data = reinterpret_cast<UserData *> ( context->userData );
 
 	glDeleteProgram ( user_data->program );
 }
 
-extern "C" int esMain ( ESContext *es_context )
+extern "C" int esMain ( ESContext *context )
 {
-	es_context->userData = new UserData;
+	context->userData = new UserData;
 
-	esCreateWindow (
-	    es_context,
-	    "Hello Triangle",
-	    800,
-	    600,
-	    ES_WINDOW_RGB
-	);
+	esCreateWindow ( context, "Red Triangle", 800, 600, ES_WINDOW_RGB );
 
-	if ( !init ( es_context ) ) return GL_FALSE;
+	if ( !init ( context ) ) return GL_FALSE;
 
-	esRegisterDrawFunc ( es_context, draw );
-	esRegisterShutdownFunc ( es_context, shutdown );
+	esRegisterDrawFunc ( context, draw );
+	esRegisterShutdownFunc ( context, shutdown );
 
 	return GL_TRUE;
 }
